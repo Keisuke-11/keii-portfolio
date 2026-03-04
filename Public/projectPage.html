@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KITV - Projects</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --teal: #2a9d8f;
+            --teal-dark: #1a7b7b;
+            --teal-glow: rgba(42, 157, 143, 0.4);
+            --amber: #d4a574;
+            --amber-glow: rgba(212, 165, 116, 0.4);
+            --cream: #e8dcc4;
+            --bg: #111c1c;
+            --bg2: #162020;
+            --card: #1b2e2e;
+            --card2: #192828;
+            --text: #c8d8d8;
+            --text-dim: #607070;
+            --border: rgba(42, 157, 143, 0.2);
+            --mono: 'Space Mono', monospace;
+            --sans: 'Syne', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--mono);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(42,157,143,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(42,157,143,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Ambient glow */
+        .ambient {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(130px);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .ambient-1 {
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(42,157,143,0.1) 0%, transparent 70%);
+            top: -200px; left: -200px;
+        }
+        .ambient-2 {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(212,165,116,0.07) 0%, transparent 70%);
+            bottom: 0; right: -150px;
+        }
+
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            padding: 1.2rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(17, 28, 28, 0.75);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(42,157,143,0.2);
+        }
+
+        .logo {
+            font-family: var(--sans);
+            font-weight: 800;
+            font-size: 1.6rem;
+            color: var(--teal);
+            letter-spacing: -1px;
+            text-shadow: 0 0 30px var(--teal-glow);
+            text-decoration: none;
+        }
+
+        nav ul { display: flex; list-style: none; gap: 0.5rem; }
+
+        nav a {
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            letter-spacing: 1px;
+            transition: all 0.25s;
+            border: 1px solid transparent;
+        }
+        nav a:hover, nav a.active {
+            color: var(--teal);
+            border-color: rgba(42,157,143,0.3);
+            background: rgba(42,157,143,0.08);
+        }
+
+        .page-header {
+            position: relative;
+            z-index: 1;
+            padding: 8rem 6rem 3rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-eyebrow {
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            color: var(--teal);
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .page-eyebrow::after {
+            content: '';
+            width: 60px; height: 1px;
+            background: rgba(42,157,143,0.3);
+        }
+
+        .page-title {
+            font-family: var(--sans);
+            font-weight: 800;
+            font-size: clamp(2.4rem, 4vw, 3.8rem);
+            color: var(--cream);
+            letter-spacing: -2px;
+            line-height: 1.05;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.2rem;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+
+        .breadcrumb a {
+            color: var(--teal);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .breadcrumb a:hover { color: var(--cream); }
+        .breadcrumb-sep { color: rgba(96,112,112,0.4); }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 6rem 6rem;
+        }
+
+        #folderView {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .folder-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .folder-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(42,157,143,0.06) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .folder-card:hover {
+            border-color: rgba(42,157,143,0.45);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.35), 0 0 40px rgba(42,157,143,0.08);
+        }
+        .folder-card:hover::before { opacity: 1; }
+
+        .folder-icon-wrap {
+            width: 56px; height: 56px;
+            border-radius: 14px;
+            background: rgba(42,157,143,0.1);
+            border: 1px solid rgba(42,157,143,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin-bottom: 1.4rem;
+        }
+
+        .folder-name {
+            font-family: var(--sans);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--cream);
+            margin-bottom: 0.4rem;
+        }
+
+        .folder-count {
+            font-size: 0.72rem;
+            color: var(--teal);
+            letter-spacing: 2px;
+        }
+
+        .folder-arrow {
+            position: absolute;
+            right: 1.5rem;
+            bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            transition: all 0.3s;
+        }
+        .folder-card:hover .folder-arrow {
+            color: var(--teal);
+            transform: translateX(4px);
+        }
+
+        #fileListView { display: none; }
+
+        .back-btn {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            padding: 0.6rem 1.4rem;
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid rgba(96,112,112,0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.25s;
+            margin-bottom: 2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .back-btn:hover {
+            color: var(--cream);
+            border-color: rgba(200,216,216,0.4);
+        }
+
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .file-entry {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .file-entry:hover {
+            border-color: rgba(42,157,143,0.4);
+            background: #1e3434;
+            transform: translateX(4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+        }
+
+        .file-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .file-icon-name {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .file-icon {
+            width: 46px; height: 46px;
+            border-radius: 11px;
+            background: rgba(42,157,143,0.12);
+            border: 1px solid rgba(42,157,143,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .file-name {
+            font-family: var(--sans);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--cream);
+        }
+
+        .file-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            margin-top: 0.25rem;
+            letter-spacing: 0.5px;
+        }
+
+        .file-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .file-type-badge {
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            padding: 0.2rem 0.55rem;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+        .file-type-badge.video {
+            background: rgba(42,157,143,0.12);
+            border: 1px solid rgba(42,157,143,0.3);
+            color: var(--teal);
+        }
+        .file-type-badge.image {
+            background: rgba(212,165,116,0.1);
+            border: 1px solid rgba(212,165,116,0.3);
+            color: var(--amber);
+        }
+
+        .view-btn {
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            letter-spacing: 1px;
+            padding: 0.55rem 1.2rem;
+            background: rgba(42,157,143,0.12);
+            border: 1px solid rgba(42,157,143,0.35);
+            color: var(--teal);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.25s;
+            white-space: nowrap;
+            font-weight: 700;
+        }
+        .view-btn:hover {
+            background: var(--teal);
+            color: var(--bg);
+            box-shadow: 0 0 20px rgba(42,157,143,0.3);
+        }
+
+        .detail-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 12, 12, 0.92);
+            backdrop-filter: blur(16px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .detail-modal.active { display: flex; }
+
+        .detail-content {
+            background: #151f1f;
+            border: 1px solid rgba(42,157,143,0.3);
+            border-radius: 20px;
+            max-width: 860px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow:
+                0 0 0 1px rgba(42,157,143,0.1),
+                0 40px 100px rgba(0,0,0,0.7),
+                0 0 80px rgba(42,157,143,0.08);
+        }
+
+        .detail-content::-webkit-scrollbar { width: 4px; }
+        .detail-content::-webkit-scrollbar-track { background: transparent; }
+        .detail-content::-webkit-scrollbar-thumb { background: rgba(42,157,143,0.3); border-radius: 4px; }
+
+        .detail-header {
+            background: rgba(22, 40, 40, 0.8);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(42,157,143,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 20px 20px 0 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+
+        .detail-header-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .detail-icon {
+            width: 50px; height: 50px;
+            border-radius: 12px;
+            background: rgba(42,157,143,0.12);
+            border: 1px solid rgba(42,157,143,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .detail-title {
+            font-family: var(--sans);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--cream);
+        }
+
+        .detail-meta {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.3rem;
+        }
+
+        .close-detail {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: rgba(212,165,116,0.1);
+            border: 1px solid rgba(212,165,116,0.25);
+            color: var(--amber);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .close-detail:hover {
+            background: var(--amber);
+            color: var(--bg);
+            transform: rotate(90deg);
+        }
+
+        .detail-body { padding: 2rem; }
+
+        .detail-preview {
+            background: rgba(17, 28, 28, 0.6);
+            border: 1px solid rgba(212,165,116,0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 280px;
+        }
+
+        .detail-preview img,
+        .detail-preview video {
+            max-width: 100%;
+            max-height: 420px;
+            border-radius: 8px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: rgba(42,157,143,0.3); border-radius: 4px; }
+
+        @media (max-width: 768px) {
+            nav { padding: 1rem 1.5rem; }
+            .page-header, .container { padding-left: 1.5rem; padding-right: 1.5rem; }
+            .page-header { padding-top: 6rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient ambient-1"></div>
+    <div class="ambient ambient-2"></div>
+
+    <nav>
+        <a href="homePage.html" class="logo">KEi</a>
+        <ul>
+            <li><a href="homePage.html">HOME</a></li>
+            <li><a href="projectPage.html" class="active">PROJECTS</a></li>
+            <li><a href="journeyPage.html">JOURNEY</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <div class="page-eyebrow">// PORTFOLIO</div>
+        <h1 class="page-title" id="pageTitle">Projects &amp;<br>Hobbies</h1>
+        <div class="breadcrumb">
+            <span>📁</span>
+            <a href="#" onclick="showFolders(); return false;">root</a>
+            <span class="breadcrumb-sep">›</span>
+            <span id="breadcrumbPath"></span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="folderView">
+            <div class="folder-card reveal" onclick="openFolder('Editing')">
+                <div class="folder-icon-wrap">🎬</div>
+                <div class="folder-name">Editing</div>
+                <div class="folder-count" id="count-editing">Loading...</div>
+                <div class="folder-arrow">→</div>
+            </div>
+            <div class="folder-card reveal" onclick="openFolder('Animation')" style="transition-delay: 0.08s;">
+                <div class="folder-icon-wrap">🎨</div>
+                <div class="folder-name">Animation</div>
+                <div class="folder-count" id="count-animation">Loading...</div>
+                <div class="folder-arrow">→</div>
+            </div>
+            <div class="folder-card reveal" onclick="openFolder('Programming')" style="transition-delay: 0.16s;">
+                <div class="folder-icon-wrap">💻</div>
+                <div class="folder-name">Programming</div>
+                <div class="folder-count" id="count-programming">Loading...</div>
+                <div class="folder-arrow">→</div>
+            </div>
+            <div class="folder-card reveal" onclick="openFolder('Drawing')" style="transition-delay: 0.24s;">
+                <div class="folder-icon-wrap">✏️</div>
+                <div class="folder-name">Drawing</div>
+                <div class="folder-count" id="count-drawing">Loading...</div>
+                <div class="folder-arrow">→</div>
+            </div>
+        </div>
+
+        <div id="fileListView">
+            <button class="back-btn" onclick="showFolders()">← BACK</button>
+            <div class="file-list" id="fileList">
+                <div class="loading">Loading files...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-modal" id="detailModal">
+        <div class="detail-content">
+            <div class="detail-header">
+                <div class="detail-header-info">
+                    <div class="detail-icon" id="detailIcon"></div>
+                    <div>
+                        <div class="detail-title" id="detailTitle"></div>
+                        <div class="detail-meta" id="detailMeta"></div>
+                    </div>
+                </div>
+                <button class="close-detail" onclick="closeDetailModal()">×</button>
+            </div>
+            <div class="detail-body">
+                <div class="detail-preview" id="detailPreview"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GDRIVE_API_KEY = 'AIzaSyCenZDX16_hxb1msR8RIoKFG1VpVV9L510';
+
+        const FOLDER_IDS = {
+            'Editing':     '1LyvdutL1rFlanIibCgZI8YpIJNptyTLi',
+            'Animation':   '1P_OqT4hnHf814XIhLCZ03k9Pob0_NeYR',
+            'Programming': '1cqYjA91855T5VaZtZBFhXJnBZr3pd2fG',
+            'Drawing':     '1ZqkuFE2ECB1gVIHqGfUPKyY0dKZ_23zo'
+        };
+
+        const VIDEO_TYPES = ['video/mp4','video/quicktime','video/x-msvideo','video/webm'];
+        const IMAGE_TYPES = ['image/jpeg','image/png','image/gif','image/webp','image/jpg'];
+
+        function getFileType(mimeType) {
+            if (VIDEO_TYPES.includes(mimeType)) return 'video';
+            if (IMAGE_TYPES.includes(mimeType)) return 'image';
+            return null;
+        }
+
+        function formatBytes(bytes) {
+            if (!bytes) return 'Unknown size';
+            bytes = parseInt(bytes);
+            if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + ' GB';
+            if (bytes >= 1048576)   return (bytes / 1048576).toFixed(2)    + ' MB';
+            if (bytes >= 1024)      return (bytes / 1024).toFixed(2)       + ' KB';
+            return bytes + ' B';
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return 'Unknown date';
+            return new Date(dateStr).toLocaleDateString();
+        }
+
+        async function fetchDriveFiles(folderName) {
+            const folderId = FOLDER_IDS[folderName];
+            const query    = encodeURIComponent(`'${folderId}' in parents and trashed = false`);
+            const fields   = encodeURIComponent('files(id,name,mimeType,size,modifiedTime)');
+            const url      = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=${fields}&key=${GDRIVE_API_KEY}&pageSize=50`;
+            const res      = await fetch(url);
+            if (!res.ok) { const err = await res.json(); throw new Error(err.error?.message || 'Drive API error'); }
+            const data     = await res.json();
+            return (data.files || []).filter(f => getFileType(f.mimeType) !== null);
+        }
+
+        let currentFolder = null;
+        let currentFiles  = [];
+
+        const revealObserver = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+
+        function observeReveal() {
+            document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            observeReveal();
+            await Promise.all(Object.keys(FOLDER_IDS).map(async folder => {
+                const el = document.getElementById(`count-${folder.toLowerCase()}`);
+                try {
+                    const files = await fetchDriveFiles(folder);
+                    if (el) el.textContent = `${files.length} ${files.length === 1 ? 'item' : 'items'}`;
+                } catch (err) {
+                    if (el) el.textContent = 'unavailable';
+                }
+            }));
+        });
+
+        async function openFolder(folderName) {
+            currentFolder = folderName;
+            document.getElementById('folderView').style.display   = 'none';
+            document.getElementById('fileListView').style.display = 'block';
+            document.getElementById('pageTitle').textContent      = folderName;
+            document.getElementById('breadcrumbPath').textContent = folderName;
+
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '<div class="loading">Loading files...</div>';
+
+            try {
+                const files = await fetchDriveFiles(folderName);
+                currentFiles = files;
+                if (files.length === 0) { fileList.innerHTML = '<div class="loading">No files in this folder</div>'; return; }
+                renderFileList(files);
+            } catch (err) {
+                fileList.innerHTML = `<div class="loading" style="color:#e74c3c;">Failed to load: ${err.message}<br><span style="font-size:0.7rem;opacity:0.6;">Make sure the folder is shared publicly.</span></div>`;
+            }
+        }
+
+        function renderFileList(files) {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = files.map((file, index) => {
+                const type    = getFileType(file.mimeType);
+                const icon    = type === 'video' ? '📹' : '🖼️';
+                const sizeStr = formatBytes(file.size);
+                const dateStr = formatDate(file.modifiedTime);
+                return `
+                    <div class="file-entry reveal" onclick="openDetailModal(${index})" style="transition-delay:${index * 0.06}s">
+                        <div class="file-header">
+                            <div class="file-icon-name">
+                                <div class="file-icon">${icon}</div>
+                                <div>
+                                    <div class="file-name">${file.name}</div>
+                                    <div class="file-meta">
+                                        <span>${sizeStr}</span>
+                                        <span>${dateStr}</span>
+                                        <span class="file-type-badge ${type}">${type.toUpperCase()}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="view-btn" onclick="event.stopPropagation(); openDetailModal(${index})">VIEW →</button>
+                        </div>
+                    </div>`;
+            }).join('');
+            document.querySelectorAll('.file-entry.reveal').forEach(el => revealObserver.observe(el));
+        }
+
+        function openDetailModal(index) {
+            const file    = currentFiles[index];
+            const type    = getFileType(file.mimeType);
+            const icon    = type === 'video' ? '📹' : '🖼️';
+            const sizeStr = formatBytes(file.size);
+            const dateStr = formatDate(file.modifiedTime);
+            const timeStr = new Date(file.modifiedTime).toLocaleTimeString();
+
+            document.getElementById('detailIcon').textContent  = icon;
+            document.getElementById('detailTitle').textContent = file.name;
+            document.getElementById('detailMeta').innerHTML    = `<span>${sizeStr}</span><span>${dateStr}</span><span>${timeStr}</span>`;
+
+            const preview = document.getElementById('detailPreview');
+            if (type === 'video') {
+                preview.innerHTML = `<iframe src="https://drive.google.com/file/d/${file.id}/preview" width="100%" height="420" style="border:none;border-radius:10px;" allow="autoplay" allowfullscreen></iframe>`;
+            } else {
+                preview.innerHTML = `<img src="https://lh3.googleusercontent.com/d/${file.id}" alt="${file.name}" style="max-width:100%;max-height:420px;border-radius:10px;" onerror="this.src='https://drive.google.com/thumbnail?id=${file.id}&sz=w800'">`;
+            }
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailPreview').innerHTML = '';
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        function showFolders() {
+            currentFolder = null; currentFiles = [];
+            document.getElementById('folderView').style.display   = 'grid';
+            document.getElementById('fileListView').style.display = 'none';
+            document.getElementById('pageTitle').textContent      = 'Projects & Hobbies';
+            document.getElementById('breadcrumbPath').textContent = '';
+        }
+
+        window.addEventListener('click', e => { if (e.target === document.getElementById('detailModal')) closeDetailModal(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetailModal(); });
+    </script>
+</body>
+</html>
